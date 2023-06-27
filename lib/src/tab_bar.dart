@@ -27,6 +27,7 @@ class SegmentedTabControl extends StatefulWidget
     this.radius = const Radius.circular(20),
     this.splashColor,
     this.splashHighlightColor,
+    this.tabBuilder,
   }) : super(key: key);
 
   /// Height of the widget.
@@ -81,6 +82,9 @@ class SegmentedTabControl extends StatefulWidget
 
   /// Splash highlight color of options.
   final Color? splashHighlightColor;
+
+  /// Custom widget
+  final Widget Function(String label)? tabBuilder;
 
   @override
   _SegmentedTabControlState createState() => _SegmentedTabControlState();
@@ -214,6 +218,7 @@ class _SegmentedTabControlState extends State<SegmentedTabControl>
   }
 
   int get _internalIndex => _alignmentToIndex(_currentIndicatorAlignment);
+
   int _alignmentToIndex(Alignment alignment) {
     final currentPosition =
         (_controller!.length - 1) * _xToPercentsCoefficient(alignment);
@@ -230,7 +235,7 @@ class _SegmentedTabControlState extends State<SegmentedTabControl>
     final currentTab = widget.tabs[_internalIndex];
 
     final textStyle =
-        widget.textStyle ?? Theme.of(context).textTheme.bodyText2!;
+        widget.textStyle ?? Theme.of(context).textTheme.bodyMedium!;
 
     final selectedTabTextColor = currentTab.selectedTextColor ??
         widget.selectedTabTextColor ??
@@ -283,6 +288,7 @@ class _SegmentedTabControlState extends State<SegmentedTabControl>
                       textStyle: textStyle.copyWith(
                         color: tabTextColor,
                       ),
+                      tabBuilder: widget.tabBuilder,
                     ),
                   ),
                 ),
@@ -338,6 +344,7 @@ class _SegmentedTabControlState extends State<SegmentedTabControl>
                         textStyle: textStyle.copyWith(
                           color: selectedTabTextColor,
                         ),
+                        tabBuilder: widget.tabBuilder,
                       ),
                     ),
                   ),
@@ -417,6 +424,7 @@ class _Labels extends StatelessWidget {
     this.splashColor,
     this.splashHighlightColor,
     this.tabPadding = const EdgeInsets.symmetric(horizontal: 8),
+    required this.tabBuilder,
   }) : super(key: key);
 
   final VoidCallback Function(int index)? callbackBuilder;
@@ -428,6 +436,7 @@ class _Labels extends StatelessWidget {
   final Radius radius;
   final Color? splashColor;
   final Color? splashHighlightColor;
+  final Widget Function(String label)? tabBuilder;
 
   late final width = availableSpace / tabs.length;
 
@@ -455,11 +464,12 @@ class _Labels extends StatelessWidget {
                       duration: kTabScrollDuration,
                       curve: Curves.ease,
                       style: textStyle,
-                      child: Text(
-                        tab.label,
-                        overflow: TextOverflow.clip,
-                        maxLines: 1,
-                      ),
+                      child: tabBuilder?.call(tab.label) ??
+                          Text(
+                            tab.label,
+                            overflow: TextOverflow.clip,
+                            maxLines: 1,
+                          ),
                     ),
                   ),
                 ),
